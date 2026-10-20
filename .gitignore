@@ -1,0 +1,22 @@
+# Ignora caches Python e ambientes virtuais
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+build/
+dist/
+*.spec
+
+# Ignora bases de dados CSV/ZIP brutas do dados.gov.br (arquivos grandes)
+projeto/db/dados/*.csv
+projeto/db/dados/*.zip
+db/dados/*.csv
+db/dados/*.zip
+
+# Pastas locais de controle das versoes
+versao_1_commit_hoje/
+versao_2_commit_amanha/
+entrega_professor_projeto.zip
+publicar_commit_2_amanha.ps1
+REGISTRO_DE_ERROS.md

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Servidores Federais · Consulta</title>
+  <meta name="description" content="Consulta de servidores ativos e aposentados do Poder Executivo Federal">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+  <div class="fundo" aria-hidden="true">
+    <span class="bolha b1"></span><span class="bolha b2"></span><span class="bolha b3"></span>
+  </div>
+
+  <header class="topo">
+    <div class="marca">
+      <div class="logo">🏛️</div>
+      <div>
+        <h1>Servidores <span class="destaque">Federais</span></h1>
+        <p>Ativos e aposentados do Poder Executivo Federal · dados.gov.br</p>
+      </div>
+    </div>
+    <div id="status-api" class="status carregando" title="Status da API">
+      <span class="ponto"></span><span class="texto">Conectando à API…</span>
+    </div>
+  </header>
+
+  <main class="conteudo">
+    <section class="cartao busca" aria-label="Formulário de busca">
+      <nav class="abas" role="tablist">
+        <button class="aba ativa" data-modo="nome" role="tab">👤 Nome exato</button>
+        <button class="aba" data-modo="similar" role="tab">🔎 Similaridade</button>
+        <button class="aba" data-modo="cargo" role="tab">💼 Cargo</button>
+        <button class="aba" data-modo="uf" role="tab">🗺️ Estado</button>
+        <button class="aba" data-modo="orgao" role="tab">🏢 Órgão</button>
+        <button class="aba" data-modo="avancada" role="tab">⚙️ Avançada</button>
+      </nav>
+
+      <form id="form-busca" autocomplete="off" novalidate>
+        <p id="dica-modo" class="dica"></p>
+
+        <div class="grade">
+          <label class="campo" data-modos="nome avancada">
+            <span>Nome completo</span>
+            <input id="f-nome" name="nome" placeholder="Ex.: Maria da Silva" maxlength="100">
+          </label>
+
+          <label class="campo" data-modos="similar avancada">
+            <span>Nome por similaridade <small>use % como curinga</small></span>
+            <input id="f-similar" name="similar" placeholder="Ex.: %MARIA%SILVA%" maxlength="100">
+          </label>
+
+          <label class="campo pequeno" data-modos="similar">
+            <span>Limite</span>
+            <input id="f-limit" name="limit" type="number" min="1" max="100" value="100">
+          </label>
+
+          <label class="campo" data-modos="cargo avancada">
+            <span>Cargo / profissão</span>
+            <input id="f-cargo" name="cargo" list="lista-cargos" placeholder="Ex.: Professor" maxlength="100">
+            <datalist id="lista-cargos"></datalist>
+          </label>
+
+          <label class="campo" data-modos="orgao avancada">
+            <span>Instituição / órgão</span>
+            <input id="f-orgao" name="orgao" list="lista-orgaos" placeholder="Ex.: Universidade Federal" maxlength="100">
+            <datalist id="lista-orgaos"></datalist>
+          </label>
+
+          <label class="campo" data-modos="uf avancada">
+            <span>Estado (UF)</span>
+            <select id="f-uf" name="uf"><option value="">Selecione…</option></select>
+          </label>
+
+          <label class="campo" data-modos="nome similar cargo uf orgao avancada">
+            <span>Situação</span>
+            <select id="f-situacao" name="situacao">
+              <option value="">Todos</option>
+              <option value="ATIVO">Ativos</option>
+              <option value="APOSENTADO">Aposentados</option>
+            </select>
+          </label>
+
+          <label class="campo pequeno" data-modos="nome similar cargo uf orgao avancada">
+            <span>Por página</span>
+            <select id="f-por-pagina" name="por_pagina">
+              <option>10</option><option selected>20</option><option>50</option><option>100</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="acoes">
+          <button type="button" id="btn-limpar" class="botao secundario">Limpar</button>
+          <button type="submit" id="btn-buscar" class="botao primario">
+            <span class="rotulo">Buscar</span><span class="spinner"></span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section id="area-resultado" aria-live="polite">
+      <div class="vazio">
+        <div class="ilustracao">📊</div>
+        <h2>Faça uma consulta</h2>
+        <p>Escolha um tipo de busca acima. Você pode combinar filtros na aba <b>Avançada</b>.</p>
+      </div>
+    </section>
+
+    <details class="cartao endpoint">
+      <summary>🔗 Requisição enviada à API</summary>
+      <code id="url-api">—</code>
+    </details>
+  </main>
+
+  <div id="modal" class="modal" hidden>
+    <div class="modal-fundo" data-fechar></div>
+    <div class="modal-caixa cartao" role="dialog" aria-modal="true">
+      <button class="fechar" data-fechar aria-label="Fechar">✕</button>
+      <div id="modal-conteudo"></div>
+    </div>
+  </div>
+
+  <footer class="rodape">
+    Trabalho 3º Bimestre · Flask + Gunicorn · PostgreSQL · Docker
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

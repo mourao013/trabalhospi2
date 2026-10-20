@@ -1,0 +1,80 @@
+# Uso (na raiz do projeto):  docker compose up --build
+#   Front-end : http://localhost:8080
+#   API       : http://localhost:5000/api/servidores?uf=DF
+#   PostgreSQL: localhost:5432 (postgres/postgres)
+
+services:
+  db:
+    build: ./db
+    container_name: db-server
+    environment:
+      POSTGRES_DB: servidores
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      API_DB_PASSWORD: leitura123
+    # Ajustes de desempenho do PostgreSQL para buscas
+    command: >
+      postgres
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c work_mem=16MB
+      -c maintenance_work_mem=256MB
+      -c effective_cache_size=768MB
+      -c random_page_cost=1.1
+    ports:
+      - "5432:5432"
+    volumes:
+      - dados_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d servidores"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: backend
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: servidores
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      API_DB_USER: api_leitura
+      API_DB_PASSWORD: leitura123
+      PASTA_DADOS: /dados
+      GUNICORN_WORKERS: 4
+      GUNICORN_THREADS: 8
+      DB_POOL_MAX: 8                 # 4 workers x 8 = 32 conexões (< max_connections)
+      MAX_BUSCAS_SIMULTANEAS: 8
+      BUSCA_TIMEOUT_MS: 5000
+      RATE_LIMIT_REQUISICOES: 120
+      RATE_LIMIT_JANELA_S: 60
+    volumes:
+      # CSVs do dados.gov.br (somente leitura)
+      - ./db/dados:/dados:ro
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/saude', timeout=4)"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  dados_pg:
