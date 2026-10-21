@@ -14,9 +14,8 @@ projeto/db/dados/*.zip
 db/dados/*.csv
 db/dados/*.zip
 
-# Pastas locais de controle das versoes
+# Pastas locais auxiliares
 versao_1_commit_hoje/
 versao_2_commit_amanha/
 entrega_professor_projeto.zip
 publicar_commit_2_amanha.ps1
-REGISTRO_DE_ERROS.md

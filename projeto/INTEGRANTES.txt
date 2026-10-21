@@ -1,0 +1,13 @@
+====================================================================
+TRABALHO 3º BIMESTRE - DESENVOLVIMENTO DE UMA APLICAÇÃO FULL STACK
+====================================================================
+
+INTEGRANTES DA EQUIPE E MATRÍCULAS:
+
+1. Pedro Henrique Cardoso — Matrícula: 169618
+2. Carlos Mourão          — Matrícula: 171075
+3. João Vitor             — Matrícula: 171077
+
+====================================================================
+Repositório GitHub: https://github.com/mourao013/trabalhospi2
+====================================================================

@@ -1,128 +1,263 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-tema="claro">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Servidores Federais · Consulta</title>
-  <meta name="description" content="Consulta de servidores ativos e aposentados do Poder Executivo Federal">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+  <title>Painel de Consulta · Servidores do Poder Executivo Federal</title>
+  <meta name="description" content="Aplicação Full Stack para consulta estruturada de servidores ativos e aposentados do Poder Executivo Federal (dados.gov.br).">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230B3B8C'/><path d='M20 75h60v8H20zm6-8h8V42h-8zm16 0h8V42h-8zm16 0h8V42h-8zm16 0h8V42h-8zM18 36l32-18 32 18v4H18z' fill='%23FFFFFF'/></svg>">
   <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
-  <div class="fundo" aria-hidden="true">
-    <span class="bolha b1"></span><span class="bolha b2"></span><span class="bolha b3"></span>
-  </div>
+  <a class="pular-link" href="#painel-resultados">Pular para os resultados da consulta</a>
 
-  <header class="topo">
-    <div class="marca">
-      <div class="logo">🏛️</div>
-      <div>
-        <h1>Servidores <span class="destaque">Federais</span></h1>
-        <p>Ativos e aposentados do Poder Executivo Federal · dados.gov.br</p>
+  <!-- Barra institucional superior -->
+  <div class="barra-gov" role="region" aria-label="Identificação institucional">
+    <div class="container barra-gov-inner">
+      <div class="barra-gov-esq">
+        <span class="selo-br" aria-hidden="true">BR</span>
+        <span class="barra-gov-titulo">Poder Executivo Federal · Portal Brasileiro de Dados Abertos (<code>dados.gov.br</code>)</span>
+      </div>
+      <div class="barra-gov-dir">
+        <span>Conjuntos: <strong>Aposentados</strong> &amp; <strong>Carreiras/Cargos</strong></span>
       </div>
     </div>
-    <div id="status-api" class="status carregando" title="Status da API">
-      <span class="ponto"></span><span class="texto">Conectando à API…</span>
+  </div>
+
+  <!-- Cabeçalho da aplicação -->
+  <header class="cabecalho">
+    <div class="container cabecalho-inner">
+      <div class="identidade">
+        <div class="emblema" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/>
+          </svg>
+        </div>
+        <div>
+          <div class="migalha">Sistema Integrado de Gestão de Pessoas · SIAPE / Transparência</div>
+          <h1>Consulta de Servidores do Executivo Federal</h1>
+        </div>
+      </div>
+
+      <div class="cabecalho-controles">
+        <div id="status-api" class="status-badge carregando" role="status" aria-live="polite">
+          <span class="status-indicador" aria-hidden="true"></span>
+          <span class="status-texto">Verificando conexão com a API…</span>
+        </div>
+
+        <button type="button" id="btn-tema" class="btn-icone" aria-label="Alternar entre tema claro e escuro" title="Alternar tema claro/escuro">
+          <svg class="icone-sol" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <svg class="icone-lua" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <span id="rotulo-tema">Tema escuro</span>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="conteudo">
-    <section class="cartao busca" aria-label="Formulário de busca">
-      <nav class="abas" role="tablist">
-        <button class="aba ativa" data-modo="nome" role="tab">👤 Nome exato</button>
-        <button class="aba" data-modo="similar" role="tab">🔎 Similaridade</button>
-        <button class="aba" data-modo="cargo" role="tab">💼 Cargo</button>
-        <button class="aba" data-modo="uf" role="tab">🗺️ Estado</button>
-        <button class="aba" data-modo="orgao" role="tab">🏢 Órgão</button>
-        <button class="aba" data-modo="avancada" role="tab">⚙️ Avançada</button>
-      </nav>
+  <!-- Faixa de métricas reais da base (alimentada por /api/saude) -->
+  <section class="faixa-metricas" aria-label="Escopo e volume da base de dados">
+    <div class="container grade-metricas">
+      <div class="metrica-item">
+        <span class="metrica-rotulo">Registros indexados</span>
+        <strong id="met-servidores" class="metrica-valor">—</strong>
+        <span id="met-fonte" class="metrica-sub">Aguardando leitura do banco…</span>
+      </div>
+      <div class="metrica-item">
+        <span class="metrica-rotulo">Carreiras e cargos</span>
+        <strong id="met-cargos" class="metrica-valor">—</strong>
+        <span class="metrica-sub">Tabela de domínio normalizada</span>
+      </div>
+      <div class="metrica-item">
+        <span class="metrica-rotulo">Órgãos e instituições</span>
+        <strong id="met-orgaos" class="metrica-valor">—</strong>
+        <span class="metrica-sub">Unidades de lotação e exercício</span>
+      </div>
+      <div class="metrica-item">
+        <span class="metrica-rotulo">Unidades federativas</span>
+        <strong id="met-ufs" class="metrica-valor">27 UFs</strong>
+        <span class="metrica-sub">Índices B-Tree + GIN (<code>pg_trgm</code>)</span>
+      </div>
+    </div>
+  </section>
 
-      <form id="form-busca" autocomplete="off" novalidate>
-        <p id="dica-modo" class="dica"></p>
+  <!-- Workspace principal -->
+  <main class="container workspace">
+    <!-- Painel de consulta e filtros -->
+    <section class="painel-busca" aria-labelledby="titulo-painel-busca">
+      <div class="painel-busca-topo">
+        <div>
+          <h2 id="titulo-painel-busca">Modalidade de Consulta</h2>
+          <p class="subtitulo-painel">Selecione o critério principal ou utilize a busca combinada avançada.</p>
+        </div>
+        <div class="atalhos-rapidos" aria-label="Consultas de exemplo rápidas">
+          <span class="atalhos-rotulo">Testar exemplo:</span>
+          <button type="button" class="chip-exemplo" data-exemplo="similar" data-valor="%MARIA%SILVA%" data-limit="50">Similar: <code>%MARIA%SILVA%</code></button>
+          <button type="button" class="chip-exemplo" data-exemplo="cargo" data-valor="PROFESSOR">Cargo: <code>PROFESSOR</code></button>
+          <button type="button" class="chip-exemplo" data-exemplo="uf" data-valor="DF">UF: <code>DF</code></button>
+          <button type="button" class="chip-exemplo" data-exemplo="avancada" data-cargo="MEDICO" data-uf="SP" data-situacao="ATIVO">Combinada: <code>MEDICO + SP + ATIVO</code></button>
+        </div>
+      </div>
 
-        <div class="grade">
-          <label class="campo" data-modos="nome avancada">
-            <span>Nome completo</span>
-            <input id="f-nome" name="nome" placeholder="Ex.: Maria da Silva" maxlength="100">
-          </label>
+      <!-- Abas acessíveis (WAI-ARIA Tabs) -->
+      <div class="abas-lista" role="tablist" aria-label="Modos de busca">
+        <button type="button" class="aba" role="tab" id="tab-nome" aria-selected="true" aria-controls="painel-form" tabindex="0" data-modo="nome">
+          <span class="aba-num">1</span> Nome Exato
+        </button>
+        <button type="button" class="aba" role="tab" id="tab-similar" aria-selected="false" aria-controls="painel-form" tabindex="-1" data-modo="similar">
+          <span class="aba-num">2</span> Similaridade (<code>%</code>)
+        </button>
+        <button type="button" class="aba" role="tab" id="tab-cargo" aria-selected="false" aria-controls="painel-form" tabindex="-1" data-modo="cargo">
+          <span class="aba-num">3</span> Cargo / Profissão
+        </button>
+        <button type="button" class="aba" role="tab" id="tab-uf" aria-selected="false" aria-controls="painel-form" tabindex="-1" data-modo="uf">
+          <span class="aba-num">4</span> Estado (UF)
+        </button>
+        <button type="button" class="aba" role="tab" id="tab-orgao" aria-selected="false" aria-controls="painel-form" tabindex="-1" data-modo="orgao">
+          <span class="aba-num">5</span> Instituição / Órgão
+        </button>
+        <button type="button" class="aba" role="tab" id="tab-avancada" aria-selected="false" aria-controls="painel-form" tabindex="-1" data-modo="avancada">
+          <span class="aba-num">6</span> Busca Combinada Avançada
+        </button>
+      </div>
 
-          <label class="campo" data-modos="similar avancada">
-            <span>Nome por similaridade <small>use % como curinga</small></span>
-            <input id="f-similar" name="similar" placeholder="Ex.: %MARIA%SILVA%" maxlength="100">
-          </label>
+      <form id="form-busca" role="tabpanel" aria-labelledby="tab-nome" novalidate autocomplete="off">
+        <div id="dica-modo" class="orientacao-modo" role="note"></div>
 
-          <label class="campo pequeno" data-modos="similar">
-            <span>Limite</span>
-            <input id="f-limit" name="limit" type="number" min="1" max="100" value="100">
-          </label>
+        <!-- Alerta de validação de formulário associado aos campos -->
+        <div id="alerta-validacao" class="alerta-validacao" role="alert" hidden></div>
 
-          <label class="campo" data-modos="cargo avancada">
-            <span>Cargo / profissão</span>
-            <input id="f-cargo" name="cargo" list="lista-cargos" placeholder="Ex.: Professor" maxlength="100">
+        <div class="grade-campos">
+          <!-- Campo: Nome Exato -->
+          <div class="grupo-campo" data-modos="nome avancada">
+            <label for="f-nome">Nome completo do servidor (busca exata)</label>
+            <input id="f-nome" name="nome" type="text" placeholder="Ex.: MARIA DIAS SILVA" maxlength="100" aria-describedby="ajuda-nome">
+            <small id="ajuda-nome" class="texto-ajuda">Ignora maiúsculas/minúsculas e acentuação. Não utiliza curingas.</small>
+          </div>
+
+          <!-- Campo: Similaridade -->
+          <div class="grupo-campo" data-modos="similar avancada">
+            <label for="f-similar">Padrão de nome por similaridade</label>
+            <input id="f-similar" name="similar" type="text" placeholder="Ex.: %MARIA%SILVA% ouJOAO%SANTOS" maxlength="100" aria-describedby="ajuda-similar">
+            <small id="ajuda-similar" class="texto-ajuda">Formatos aceitos: <code>%NOME%SOBRENOME%</code>, <code>NOME SOBRENOME%</code> ou <code>NOME%SOBRENOME</code>.</small>
+          </div>
+
+          <!-- Campo: Limite de Similaridade -->
+          <div class="grupo-campo estreito" data-modos="similar">
+            <label for="f-limit">Limite máx. (<code>limit</code>)</label>
+            <input id="f-limit" name="limit" type="number" min="1" max="100" value="100" aria-describedby="ajuda-limit">
+            <small id="ajuda-limit" class="texto-ajuda">Máximo de 100 registros.</small>
+          </div>
+
+          <!-- Campo: Cargo -->
+          <div class="grupo-campo" data-modos="cargo avancada">
+            <label for="f-cargo">Cargo ou profissão</label>
+            <input id="f-cargo" name="cargo" type="text" list="lista-cargos" placeholder="Ex.: PROFESSOR, MEDICO, ANALISTA…" maxlength="100" aria-describedby="ajuda-cargo">
             <datalist id="lista-cargos"></datalist>
-          </label>
+            <small id="ajuda-cargo" class="texto-ajuda">Digite ao menos 2 letras para sugestões da base.</small>
+          </div>
 
-          <label class="campo" data-modos="orgao avancada">
-            <span>Instituição / órgão</span>
-            <input id="f-orgao" name="orgao" list="lista-orgaos" placeholder="Ex.: Universidade Federal" maxlength="100">
+          <!-- Campo: Órgão -->
+          <div class="grupo-campo" data-modos="orgao avancada">
+            <label for="f-orgao">Instituição ou órgão de lotação</label>
+            <input id="f-orgao" name="orgao" type="text" list="lista-orgaos" placeholder="Ex.: MINISTERIO DA SAUDE, UNIVERSIDADE…" maxlength="100" aria-describedby="ajuda-orgao">
             <datalist id="lista-orgaos"></datalist>
-          </label>
+            <small id="ajuda-orgao" class="texto-ajuda">Busca exata ou parcial na tabela de órgãos.</small>
+          </div>
 
-          <label class="campo" data-modos="uf avancada">
-            <span>Estado (UF)</span>
-            <select id="f-uf" name="uf"><option value="">Selecione…</option></select>
-          </label>
+          <!-- Campo: Estado (UF) -->
+          <div class="grupo-campo" data-modos="uf avancada">
+            <label for="f-uf">Unidade Federativa (UF)</label>
+            <select id="f-uf" name="uf" aria-describedby="ajuda-uf">
+              <option value="">Todas as UFs (selecione…)</option>
+            </select>
+            <small id="ajuda-uf" class="texto-ajuda">27 unidades federativas oficiais.</small>
+          </div>
 
-          <label class="campo" data-modos="nome similar cargo uf orgao avancada">
-            <span>Situação</span>
+          <!-- Campo: Situação Funcional -->
+          <div class="grupo-campo estreito" data-modos="nome similar cargo uf orgao avancada">
+            <label for="f-situacao">Situação funcional</label>
             <select id="f-situacao" name="situacao">
-              <option value="">Todos</option>
-              <option value="ATIVO">Ativos</option>
-              <option value="APOSENTADO">Aposentados</option>
+              <option value="">Ativos e Aposentados</option>
+              <option value="ATIVO">Somente Ativos</option>
+              <option value="APOSENTADO">Somente Aposentados</option>
             </select>
-          </label>
+            <small class="texto-ajuda">Filtra vínculo SIAPE.</small>
+          </div>
 
-          <label class="campo pequeno" data-modos="nome similar cargo uf orgao avancada">
-            <span>Por página</span>
+          <!-- Campo: Itens por página -->
+          <div class="grupo-campo estreito" data-modos="nome similar cargo uf orgao avancada">
+            <label for="f-por-pagina">Registros por página</label>
             <select id="f-por-pagina" name="por_pagina">
-              <option>10</option><option selected>20</option><option>50</option><option>100</option>
+              <option value="10">10 por página</option>
+              <option value="20" selected>20 por página</option>
+              <option value="50">50 por página</option>
+              <option value="100">100 por página</option>
             </select>
-          </label>
+            <small class="texto-ajuda">Paginação da API.</small>
+          </div>
         </div>
 
-        <div class="acoes">
-          <button type="button" id="btn-limpar" class="botao secundario">Limpar</button>
-          <button type="submit" id="btn-buscar" class="botao primario">
-            <span class="rotulo">Buscar</span><span class="spinner"></span>
-          </button>
+        <div class="barra-acoes-form">
+          <div class="inspector-endpoint" aria-live="polite">
+            <span class="inspector-rotulo">Endpoint HTTP GET:</span>
+            <code id="url-api">/api/servidores</code>
+            <button type="button" id="btn-copiar-url" class="btn-link" title="Copiar URL da requisição">Copiar</button>
+          </div>
+
+          <div class="botoes-form">
+            <button type="button" id="btn-limpar" class="botao secundario">Limpar filtros</button>
+            <button type="submit" id="btn-buscar" class="botao primario">
+              <span class="spinner" aria-hidden="true"></span>
+              <span class="rotulo-btn">Consultar Base</span>
+            </button>
+          </div>
         </div>
       </form>
     </section>
 
-    <section id="area-resultado" aria-live="polite">
-      <div class="vazio">
-        <div class="ilustracao">📊</div>
-        <h2>Faça uma consulta</h2>
-        <p>Escolha um tipo de busca acima. Você pode combinar filtros na aba <b>Avançada</b>.</p>
+    <!-- Região de resultados (ARIA live para leitores de tela) -->
+    <section id="painel-resultados" class="painel-resultados" aria-live="polite" aria-busy="false">
+      <div class="estado-inicial">
+        <div class="estado-icone" aria-hidden="true">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/><path d="M11 8v6"/>
+          </svg>
+        </div>
+        <h2>Pronto para consultar a base de servidores</h2>
+        <p>Preencha um dos filtros acima e acione <strong>Consultar Base</strong>, ou clique em um dos botões de <strong>Testar exemplo</strong> para inspecionar registros reais imediatamente.</p>
       </div>
     </section>
-
-    <details class="cartao endpoint">
-      <summary>🔗 Requisição enviada à API</summary>
-      <code id="url-api">—</code>
-    </details>
   </main>
 
-  <div id="modal" class="modal" hidden>
-    <div class="modal-fundo" data-fechar></div>
-    <div class="modal-caixa cartao" role="dialog" aria-modal="true">
-      <button class="fechar" data-fechar aria-label="Fechar">✕</button>
-      <div id="modal-conteudo"></div>
+  <!-- Modal acessível de ficha detalhada do servidor -->
+  <div id="modal" class="modal-backdrop" hidden>
+    <div class="modal-dialogo" role="dialog" aria-modal="true" aria-labelledby="modal-titulo" tabindex="-1">
+      <div class="modal-cabecalho">
+        <div>
+          <span class="modal-subtitulo">Ficha Funcional Individual · Poder Executivo Federal</span>
+          <h2 id="modal-titulo">Detalhes do Servidor</h2>
+        </div>
+        <button type="button" id="btn-fechar-modal" class="botao secundario btn-fechar" aria-label="Fechar ficha detalhada (Esc)">
+          Fechar <kbd>Esc</kbd>
+        </button>
+      </div>
+      <div id="modal-conteudo" class="modal-corpo"></div>
     </div>
   </div>
 
   <footer class="rodape">
-    Trabalho 3º Bimestre · Flask + Gunicorn · PostgreSQL · Docker
+    <div class="container rodape-inner">
+      <div>
+        <strong>Trabalho 3º Bimestre — Aplicação Full Stack</strong> · Python + Flask + WSGI Gunicorn · PostgreSQL (<code>pg_trgm</code>) · Docker Compose
+      </div>
+      <div class="rodape-equipe">
+        Equipe: <strong>Pedro Henrique Cardoso</strong> (<code>169618</code>) · <strong>Carlos Mourão</strong> (<code>171075</code>) · <strong>João Vitor</strong> (<code>171077</code>)
+      </div>
+    </div>
   </footer>
 
   <script src="js/app.js"></script>
